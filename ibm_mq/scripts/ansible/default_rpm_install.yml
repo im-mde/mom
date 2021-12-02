@@ -1,0 +1,25 @@
+---
+- name: IBM-MQ RPM default installation from tar.gz
+  hosts: 'ibmmq_rpm_servers'
+  tasks:
+    - name: Create /opt/mqm/ dir
+      become: yes
+      file:
+        path: '/opt/mqm'
+        state: directory
+        mode: 0755
+    - name: Unzip IBM-MQ tar.gz file in mqm dir
+      become: yes
+      unarchive:
+        src: {{ package }}
+        dest: '/opt/mqm/'
+        remote_src: {{ remote }}
+    - name: Accept IBM-MQ license
+      become: yes
+      command: 'bash /opt/mqm/MQServer/mqlicense.sh -accept'
+    - name: Install ibm mq rpm packages
+      become: yes
+      command: 'rpm -ivh /opt/mqm/MQServer/*.rpm'
+    - name: Set this as the primary IBM-MQ install
+      become: yes
+      command: '/opt/mqm/bin/setmqinst -i -p /opt/mqm/'
