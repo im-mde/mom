@@ -16,17 +16,17 @@ if __name__ == '__main__':
     # queue manager name
     parser.add_argument(
         '-qm', '--queuemanager', help='name of queue manager',
-        default='TRN1QM', type=str
+        default='SQM1', type=str
     )
     # queue name
     parser.add_argument(
         '-q', '--queue', help='name of queue',
-        default='QUEUE.TEST.ONE', type=str
+        default='APP1.SAMPLE1.QUEUE1', type=str
     )
     # channel name
     parser.add_argument(
         '-c', '--channel', help='name of channel',
-        default='CHANNEL.TEST.ONE', type=str
+        default='SQM1.APP1.SVRCONN', type=str
     )
     # host name or ip addresss
     parser.add_argument(
