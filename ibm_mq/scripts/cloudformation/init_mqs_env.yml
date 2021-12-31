@@ -43,12 +43,12 @@ Resources:
         Value: mqsIGW
       - Key: Description
         Value: IBM-MQ Sandbox IGW
-  mqsVPCtomqsIGW:
+  mqsVPCGA:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref 'mqsVPC'
       InternetGatewayId: !Ref 'mqsIGW'
-  mqsPUSNUE2A:
+  mqsSNUE2A:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref 'mqsVPC'
@@ -56,10 +56,10 @@ Resources:
       AvailabilityZone: "us-east-2a"
       Tags:
       - Key: Name
-        Value: mqsPUSNUE2A
+        Value: mqsSNUE2A
       - Key: Description
         Value: IBM-MQ sandbox public subnet in us-east-2a
-  mqsPUSNUE2B:
+  mqsSNUE2B:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref 'mqsVPC'
@@ -67,35 +67,35 @@ Resources:
       AvailabilityZone: "us-east-2b"
       Tags:
       - Key: Name
-        Value: mqsPUSNUE2B
+        Value: mqsSNUE2B
       - Key: Description
         Value: IBM-MQ sandbox public subnet in us-east-2b
-  mqsPURT:
+  mqsRT:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref 'mqsVPC'
       Tags:
       - Key: Name
-        Value: mqsPURT
+        Value: mqsRT
       - Key: Description
         Value: IBM-MQ sandbox public route table
   mqsRouteIGW:
     Type: AWS::EC2::Route
     Properties:
-       RouteTableId: !Ref 'mqsPURT'
+       RouteTableId: !Ref 'mqsRT'
        DestinationCidrBlock: 0.0.0.0/0
        GatewayId: !Ref 'mqsIGW'
-  mqsPUSNUE2AtomqsPURT:
+  mqsSNTAUE2A:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref 'mqsPUSNUE2A'
-      RouteTableId: !Ref 'mqsPURT'
-  mqsPUSNUE2BtomqsPURT:
+      SubnetId: !Ref 'mqsSNUE2A'
+      RouteTableId: !Ref 'mqsRT'
+  mqsSNTAUE2B:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref 'mqsPUSNUE2B'
-      RouteTableId: !Ref 'mqsPURT'
-  mqsEC2A:
+      SubnetId: !Ref 'mqsSNUE2B'
+      RouteTableId: !Ref 'mqsRT'
+  mqsClient:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref 'InstanceType'
@@ -105,8 +105,8 @@ Resources:
         - AssociatePublicIpAddress: "true"
           DeviceIndex: "0"
           GroupSet: [!Ref 'mqsSG']
-          SubnetId: !Ref 'mqsPUSNUE2A'
-  mqsEC2B:
+          SubnetId: !Ref 'mqsSNUE2A'
+  mqsServer:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref 'InstanceType'
@@ -116,7 +116,7 @@ Resources:
         - AssociatePublicIpAddress: "true"
           DeviceIndex: "0"
           GroupSet: [!Ref 'mqsSG']
-          SubnetId: !Ref 'mqsPUSNUE2B'
+          SubnetId: !Ref 'mqsSNUE2B'
   mqsSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
