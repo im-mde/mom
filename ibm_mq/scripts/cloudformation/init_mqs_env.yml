@@ -135,3 +135,7 @@ Resources:
         FromPort: 8
         ToPort: -1
         CidrIp: !Ref 'LocalIP'
+      SecurityGroupEgress:
+        - Description: Allow all outbound traffic
+          IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
