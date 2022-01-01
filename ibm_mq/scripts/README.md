@@ -4,7 +4,7 @@ requires parameters to be set when executing: path to the tarball provided by
 IBM and a boolean value (yes or no) to whether the tarball is on the remote
 server or not.
 ```
-ansible-playbook install.yml -e "package=/home/immde/mq.tar.gz remote=no"
+ansible-playbook install.yml -e "package=/home/immde/mq.tar.gz remote=no MQ_INSTALL_PATH=/opt/mqm"
 ```
 ## CloudFormation
 CloudFormation configurations are configured for AWS region us-east-2.
