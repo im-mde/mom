@@ -13,7 +13,7 @@
       unarchive:
         src: {{ package }}
         dest: {{ MQ_INSTALL_PATH }}
-        remote_src: {{ remote }}
+        remote_src: no
     - name: Accept IBM-MQ license
       become: yes
       command: {{ MQ_INSTALL_PATH }}/MQServer/mqlicense.sh -accept

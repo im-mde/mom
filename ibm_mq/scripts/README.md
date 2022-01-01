@@ -1,10 +1,9 @@
 ## Ansible
 Ansible playbooks install IBM MQ onto the remote machines. Each playbook
 requires parameters to be set when executing: path to the tarball provided by
-IBM and a boolean value (yes or no) to whether the tarball is on the remote
-server or not.
+IBM and the preferred MQ_INSTALL_PATH.
 ```
-ansible-playbook install.yml -e "package=/home/immde/mq.tar.gz remote=no MQ_INSTALL_PATH=/opt/mqm"
+ansible-playbook install.yml -e "package=/home/immde/mq.tar.gz MQ_INSTALL_PATH=/opt/mqm"
 ```
 ## CloudFormation
 CloudFormation configurations are configured for AWS region us-east-2.
