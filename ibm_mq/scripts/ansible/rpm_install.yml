@@ -5,21 +5,21 @@
     - name: Create MQ_INSTALL_PATH dir
       become: yes
       file:
-        path: {{ MQ_INSTALL_PATH }}
+        path: "{{ MQ_INSTALL_PATH }}"
         state: directory
         mode: 0755
     - name: Unzip IBM-MQ tar.gz file in mqm dir
       become: yes
       unarchive:
-        src: {{ package }}
-        dest: {{ MQ_INSTALL_PATH }}
+        src: "{{ package }}"
+        dest: "{{ MQ_INSTALL_PATH }}"
         remote_src: no
     - name: Accept IBM-MQ license
       become: yes
-      command: {{ MQ_INSTALL_PATH }}/MQServer/mqlicense.sh -accept
+      command: "{{ MQ_INSTALL_PATH }}/MQServer/mqlicense.sh -accept"
     - name: Install ibm mq rpm packages
       become: yes
-      command: rpm --prefix {{ MQ_INSTALL_PATH }} -ivh {{ MQ_INSTALL_PATH }}/MQServer/*.rpm
+      command: "rpm --prefix {{ MQ_INSTALL_PATH }} -ivh {{ MQ_INSTALL_PATH }}/MQServer/*.rpm"
     - name: Set this as the primary IBM-MQ install
       become: yes
-      command: {{ MQ_INSTALL_PATH }}/bin/setmqinst -i -p {{ MQ_INSTALL_PATH }}
+      command: "{{ MQ_INSTALL_PATH }}/bin/setmqinst -i -p {{ MQ_INSTALL_PATH }}"
