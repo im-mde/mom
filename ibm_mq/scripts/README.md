@@ -1,11 +1,15 @@
 ## Ansible
-Ansible playbooks install IBM MQ onto the remote machines. Each playbook
-requires parameters to be set when executing: path to the tarball provided by
-IBM and the preferred MQ_INSTALL_PATH.
+A sample ansible environment to install IBM MQ. The site playbook
+requires variables to be set when executing: path to the tarball provided by
+IBM and the preferred MQ_INSTALL_PATH. A group_vars file is included which is
+used by default for the required variables. The site playbook can be executed
+via the following command after making required changes to the ansible variable
+and inventory file.
 ```
-ansible-playbook install.yml -e "package=/home/immde/mq.tar.gz MQ_INSTALL_PATH=/opt/mqm"
+ansible-playbook -i sandbox site.yml
 ```
 ## CloudFormation
+Sample AWS CloudFormation configurations to setup an AWS environment for IBM MQ.
 CloudFormation configurations are configured for AWS region us-east-2.
 The availability zone option will need to be altered for use outside of
 us-east-2. Failure to do so will result in an error when initializing 
