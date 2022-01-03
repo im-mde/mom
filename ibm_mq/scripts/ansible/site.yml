@@ -1,0 +1,9 @@
+---
+# Deploy and Install IBM MQ.
+
+- hosts: ibmmq-servers
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+    - ibmmq

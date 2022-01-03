@@ -1,0 +1,4 @@
+# Install RPM Packages
+- name: Installing RPM Packages
+  become: yes
+  command: "rpm --prefix {{ MQ_INSTALL_PATH }} -ivh {{ MQ_INSTALL_PATH }}/MQServer/*.rpm"

@@ -1,0 +1,26 @@
+---
+# Deploy and Install IBM MQ
+- name: "Creating {{MQ_INSTALL_PATH}} directory"
+  become: yes
+  file:
+    path: "{{ MQ_INSTALL_PATH }}"
+    state: directory
+    mode: 0755
+- name: "Extracting Package to {{ MQ_INSTALL_PATH }}"
+  become: yes
+  unarchive:
+    src: "{{ package }}"
+    dest: "{{ MQ_INSTALL_PATH }}"
+    remote_src: no
+- name: Accepting License
+  become: yes
+  command: "{{ MQ_INSTALL_PATH }}/MQServer/mqlicense.sh -accept"
+# Install RPM packages when RedHat or SLES
+- include: rpm-install.yml
+  when: ansible_os_family == 'RedHat' or ansible_os_family == 'Suse'
+# Install DEBIAN packages when Ubuntu
+- include: debian-install.yml
+  when: ansible_os_family == 'Debian'
+- name: Setting this as the primary IBM MQ install
+  become: yes
+  command: "{{ MQ_INSTALL_PATH }}/bin/setmqinst -i -p {{ MQ_INSTALL_PATH }}"

@@ -1,0 +1,3 @@
+---
+MQ_INSTALL_PATH: /opt/mqm
+package: ~/ansible/mqadv_dev924_linux_x86-64.tar.gz

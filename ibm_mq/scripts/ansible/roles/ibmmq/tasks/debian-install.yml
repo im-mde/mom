@@ -1,0 +1,13 @@
+# Install DEBIAN Packages
+- name: Creating IBM_MQ.list file
+  become: yes
+  file:
+    path: /etc/apt/sources.list.d/IBM_MQ.list
+    state: touch
+- name: Adding DEBIAN packages location to IBM_MQ.list
+  lineinfile:
+    path: "deb [trusted=yes] file:{{ MQ_INSTALL_PATH }}/MQServer ./"
+    line: last
+- name: Installing DEBIAN Packages
+  become: yes
+  command: "apt-get install ibmmq-*"
