@@ -1,0 +1,136 @@
+Description: AWS CloudFormation template creating IBM MQ sandbox environment with RHEL8 and Ubuntu 20.04 EC2 Instance
+Parameters:
+  KeyName:
+    Description: EC2 key-pair to enable SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: Must be the name of an existing EC2 KeyPair.
+  InstanceType:
+    Description: Free Tier EC2 Instance
+    Type: String
+    Default: t2.micro
+    AllowedValues: [t2.micro]
+    ConstraintDescription: Must be a valid EC2 instance type.
+  LocalIP:
+    Description: Local IP allowed through network firewall 
+    Type: String
+    MinLength: 9
+    MaxLength: 18
+    Default: 0.0.0.0/0
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
+Resources:
+  mqsVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+      - Key: Name
+        Value: mqsVPC
+      - Key: Description
+        Value: IBM-MQ Sandbox VPC
+  mqsIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: mqsIGW
+      - Key: Description
+        Value: IBM-MQ Sandbox IGW
+  mqsVPCGA:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref 'mqsVPC'
+      InternetGatewayId: !Ref 'mqsIGW'
+  mqsSNUE2A:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref 'mqsVPC'
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: "us-east-2a"
+      Tags:
+      - Key: Name
+        Value: mqsSNUE2A
+      - Key: Description
+        Value: IBM-MQ sandbox public subnet in us-east-2a
+  mqsSNUE2B:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref 'mqsVPC'
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: "us-east-2b"
+      Tags:
+      - Key: Name
+        Value: mqsSNUE2B
+      - Key: Description
+        Value: IBM-MQ sandbox public subnet in us-east-2b
+  mqsRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref 'mqsVPC'
+      Tags:
+      - Key: Name
+        Value: mqsRT
+      - Key: Description
+        Value: IBM-MQ sandbox public route table
+  mqsRouteIGW:
+    Type: AWS::EC2::Route
+    Properties:
+       RouteTableId: !Ref 'mqsRT'
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId: !Ref 'mqsIGW'
+  mqsSNTAUE2A:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref 'mqsSNUE2A'
+      RouteTableId: !Ref 'mqsRT'
+  mqsSNTAUE2B:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref 'mqsSNUE2B'
+      RouteTableId: !Ref 'mqsRT'
+  mqsRHEL8Server:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref 'InstanceType'
+      KeyName: !Ref 'KeyName'
+      ImageId: ami-0ba62214afa52bec7
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: [!Ref 'mqsSG']
+          SubnetId: !Ref 'mqsSNUE2A'
+  mqsUbuntu2004Server:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref 'InstanceType'
+      KeyName: !Ref 'KeyName'
+      ImageId: ami-0629230e074c580f2
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: [!Ref 'mqsSG']
+          SubnetId: !Ref 'mqsSNUE2B'
+  mqsSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH and IBM MQ access via port 22 and 1414 to the local IP selected
+      VpcId: !Ref 'mqsVPC'
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref 'LocalIP'
+      - IpProtocol: tcp
+        FromPort: 1414
+        ToPort: 1414
+        CidrIp: !Ref 'LocalIP'
+      - IpProtocol: icmp
+        FromPort: 8
+        ToPort: -1
+        CidrIp: !Ref 'LocalIP'
+      SecurityGroupEgress:
+        - Description: Allow all outbound traffic
+          IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
