@@ -95,7 +95,7 @@ Resources:
     Properties:
       SubnetId: !Ref 'mqsSNUE2B'
       RouteTableId: !Ref 'mqsRT'
-  mqsClient:
+  mqsServer1:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref 'InstanceType'
@@ -106,7 +106,7 @@ Resources:
           DeviceIndex: "0"
           GroupSet: [!Ref 'mqsSG']
           SubnetId: !Ref 'mqsSNUE2A'
-  mqsServer:
+  mqsServer2:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref 'InstanceType'
