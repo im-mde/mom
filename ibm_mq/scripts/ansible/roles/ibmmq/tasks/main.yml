@@ -1,5 +1,11 @@
 ---
 # Deploy and Install IBM MQ
+- name: "Verifying {{ package }} variable is defined"
+  assert:
+  that:
+    - "{{ package }} is defined"
+    - "{{ package }} | length > 0"
+    - "{{ package }} != None"
 - name: "Creating {{MQ_INSTALL_PATH}} directory"
   become: yes
   file:
@@ -24,3 +30,4 @@
 - name: Setting this as the primary IBM MQ install
   become: yes
   command: "{{ MQ_INSTALL_PATH }}/bin/setmqinst -i -p {{ MQ_INSTALL_PATH }}"
+  when: primary_install == yes
