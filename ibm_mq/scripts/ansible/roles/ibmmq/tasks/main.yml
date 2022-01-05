@@ -1,21 +1,21 @@
 ---
 # Deploy and Install IBM MQ
-- name: "Verifying {{ package }} variable is defined"
+- name: "Verifying {{ package_path }} variable is defined"
   assert:
   that:
-    - "{{ package }} is defined"
-    - "{{ package }} | length > 0"
-    - "{{ package }} != None"
+    - "{{ package_path }} is defined"
+    - "{{ package_path }} | length > 0"
+    - "{{ package_path }} != None"
 - name: "Creating {{MQ_INSTALL_PATH}} directory"
   become: yes
   file:
     path: "{{ MQ_INSTALL_PATH }}"
     state: directory
     mode: 0755
-- name: "Extracting Package to {{ MQ_INSTALL_PATH }}"
+- name: "Extracting package to {{ MQ_INSTALL_PATH }}"
   become: yes
   unarchive:
-    src: "{{ package }}"
+    src: "{{ package_path }}"
     dest: "{{ MQ_INSTALL_PATH }}"
     remote_src: no
 - name: Accepting License
