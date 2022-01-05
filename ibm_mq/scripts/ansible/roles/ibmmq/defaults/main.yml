@@ -1,0 +1,4 @@
+---
+# defaults variables for ibmmq role
+MQ_INSTALL_PATH: /opt/mqm
+primary_install: yes
