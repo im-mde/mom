@@ -1,0 +1,148 @@
+Description: Template to create an EC2 snapshot with IBM MQ installed for RHEL8 
+Parameters:
+  KeyPair:
+    Description: EC2 key-pair to enable SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: Existing EC2 KeyPair.
+  IPAccessSSH:
+    Description: Local IP(s) allowed through network firewall for SSH connection 
+    Type: String
+    MinLength: 9
+    MaxLength: 18
+    Default: 0.0.0.0/0
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: Must be a valid IP CIDR range of the form x.x.x.x/x.
+  S3Bucket:
+    Description: S3 Bucket storing IBM MQ tarball ex. your-bucket
+    Type: String
+    ConstraintDescription: Existing available S3 bucket.
+  S3MQKey:
+    Description: S3 Bucket path for IBM MQ tarball ex. ibmmq/mqadv_dev924_linux_x86-64.tar.gz
+    Type: String
+    ConstraintDescription: Existing S3 path for bucket.
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: ibmmq_rhel_temp_vpc
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref 'VPC'
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: "us-east-1a"
+      Tags:
+      - Key: Name
+        Value: ibmmq_rhel_temp_subnet
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+  InternetRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGateway
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTable
+  SubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref Subnet
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Enable SSH and IBM MQ access to the IP put in IPAccessSSH
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref 'IPAccessSSH'
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      InstanceProfileName: ibmmq-rhel-temp-instance-profile
+      Path: /
+      Roles: 
+       - !Ref Role
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ibmmq-rhel-temp-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+  S3Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: IBMQRHEL8TempS3Policy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Action:
+              - s3:*
+            Resource:
+              - Fn::Join: ['', ['arn:aws:s3:::', !Ref 'S3Bucket']]
+              - Fn::Join: ['', ['arn:aws:s3:::', !Ref 'S3Bucket', '/*']]
+      Roles:
+        - !Ref Role
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0b0af3577fe5e3532 
+      InstanceType: t2.micro
+      KeyName: !Ref 'KeyPair'
+      IamInstanceProfile: !Ref 'InstanceProfile'
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: [!Ref 'SecurityGroup']
+          SubnetId: !Ref 'Subnet'
+      UserData:
+        Fn::Base64: 
+          !Sub |
+            #!/bin/bash
+            yum -y install unzip
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            ./aws/install
+            rm -r aws
+            rm awscliv2.zip
+            yum -y remove unzip
+            aws s3 cp s3://${S3Bucket}/${S3MQKey} ibmmq.tar.gz
+            mkdir /opt/mqm
+            mv ibmmq.tar.gz /opt/mqm
+            gunzip /opt/mqm/ibmmq.tar.gz
+            tar -xf /opt/mqm/ibmmq.tar -C /opt/mqm
+            rm /opt/mqm/ibmmq.tar
+            /opt/mqm/MQServer/mqlicense.sh -accept
+            rpm -ivh /opt/mqm/MQServer/MQSeries*.rpm
+            opt/mqm/bin/setmqinst -i -p /opt/mqm
+            rm -r /opt/mqm/MQServer/
